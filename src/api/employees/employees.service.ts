@@ -44,8 +44,9 @@ async function getEmployee(req: Request, res: Response) {
       `employees/${id}?fields=displayName,firstName,lastName,preferredName,jobTitle,workPhone,mobilePhone,workEmail,department,location,division,linkedIn,instagram,pronouns,workPhoneExtension,supervisor,photoUploaded,photoUrl,canUploadPhoto,employmentHistoryStatus`
     );
 
-    // TODO: improve this error handling
-    if (!bambooEmployeeData.data) throw new Error('No employee data');
+    if (!bambooEmployeeData.data) {
+      throw new Error('No employee data');
+    }
 
     const bambooEmployee = bambooEmployeeData.data;
     const bambooEmploymentHistory = await bamboohrApiRequest(`employees/${bambooEmployee.id}/tables/employmentStatus/`);
@@ -61,6 +62,8 @@ async function getEmployee(req: Request, res: Response) {
       // AxiosError
       const { response } = error;
       res.status(response.status).send(response.data);
+    } else if (error.code === 'ECONNREFUSED') {
+      res.status(503).send("Service Unavailable. Can't connect to the API.");
     } else {
       res.status(500).send("Internal Server Error. Can't get employee data.");
     }
