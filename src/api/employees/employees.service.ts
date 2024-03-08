@@ -24,8 +24,6 @@ async function getEmployees(req: Request, res: Response): Promise<void> {
 
     if (!response.data) throw new Error('No employee data');
 
-    // validate the response data using zod schema
-    bambooEmployeeDirectorySchema.parse(response.data);
     console.log(response.data);
     // we only want to send the employees data
     res.send(response.data.employees);
