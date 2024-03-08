@@ -12,24 +12,23 @@ const paramsSchema = z.object({
   id: z.coerce.number()
 });
 
-async function getEmployees(req: Request, res: Response) {
+async function getEmployees(req: Request, res: Response): Promise<void> {
   try {
     // get the employee directory
     const response = await bamboohrApiRequest('employees/directory');
-    if (!response.data) {
-      res.status(204).send('No Content');
-    }
+    if (!response.data) throw new Error('No employee data');
 
-    const data = response?.data as EmployeeDirectory;
-    console.log(data);
+    console.log(response.data);
     // we only want to send the employees data
-    res.send(data.employees);
+    res.send(response.data.employees);
   } catch (error: AxiosError | any) {
     console.error(error);
     if (error.response) {
       // AxiosError
       const { response } = error;
       res.status(response.status).send(response.data);
+    } else if (error.code === 'ECONNREFUSED') {
+      res.status(503).send("Service Unavailable. Can't connect to the API.");
     } else {
       res.status(500).send("Internal Server Error. Can't get employees.");
     }
