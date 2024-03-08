@@ -109,7 +109,7 @@ function convertToStackOneEmployments(bambooEmployeeEmployments: BambooEmployeeE
 // Convert BambooHR employee to StackOne employee
 function convertToStackOneEmployee(
   bambooEmployee: BambooEmployee,
-  bambooEmployeeEmployment: BambooEmployeeEmployment
+  employeeEmployment: StackOneEmployments
 ): StackOneEmployee {
   return {
     id: bambooEmployee.id.toString(),
@@ -121,7 +121,7 @@ function convertToStackOneEmployee(
     work_email: bambooEmployee.workEmail,
     job_title: bambooEmployee.jobTitle,
     department: bambooEmployee.department,
-    employments: [],
+    employments: employeeEmployment ?? [],
     manager: {
       // Split the supervisor name into first and last name string is in the format "Last, First"
       first_name: bambooEmployee.supervisor.split(' ')[1],
