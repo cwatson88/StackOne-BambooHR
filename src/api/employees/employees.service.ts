@@ -9,7 +9,7 @@ import { AxiosError } from 'axios';
 import { Response, Request, response } from 'express';
 
 const paramsSchema = z.object({
-  id: z.string()
+  id: z.coerce.number()
 });
 
 async function getEmployees(req: Request, res: Response) {
@@ -37,13 +37,14 @@ async function getEmployees(req: Request, res: Response) {
 }
 
 async function getEmployee(req: Request, res: Response) {
+  const { id } = req.params;
+
   try {
-    if (!req.params.id) throw new Error('No employee id');
-    const { id } = req.params;
     // get the employee data by id
     const bambooEmployeeData = await bamboohrApiRequest(
       `employees/${id}?fields=displayName,firstName,lastName,preferredName,jobTitle,workPhone,mobilePhone,workEmail,department,location,division,linkedIn,instagram,pronouns,workPhoneExtension,supervisor,photoUploaded,photoUrl,canUploadPhoto,employmentHistoryStatus`
     );
+
     // TODO: improve this error handling
     if (!bambooEmployeeData.data) throw new Error('No employee data');
 
