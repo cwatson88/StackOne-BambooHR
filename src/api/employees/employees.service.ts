@@ -1,23 +1,21 @@
 import { z } from 'zod';
-import { bamboohrApiRequest } from '../../utils/bamboohr-api/employees';
+import {
+  EmployeeDirectory,
+  bamboohrApiRequest,
+  convertToStackOneEmployee,
+  convertToStackOneEmployments
+} from '../../utils/bamboohr-api/employees';
 import { AxiosError } from 'axios';
-import { Response, Request } from 'express';
+import { Response, Request, response } from 'express';
 
 const paramsSchema = z.object({
   id: z.string()
 });
 
-const getEmployeeDirectory = () => bamboohrApiRequest('employees/directory');
-const getEmployee = (id: string) =>
-  bamboohrApiRequest(
-    `employees/${id}?fields=displayName,firstName,lastName,preferredName,jobTitle,workPhone,mobilePhone,workEmail,department,location,division,linkedIn,instagram,pronouns,workPhoneExtension,supervisor,photoUploaded,photoUrl,canUploadPhoto,employmentHistoryStatus`
-  );
-const getEmployeeEmployment = (id: string) => bamboohrApiRequest(`employees/${id}tables/employmentStatus/`);
-const getEmployeePhoto = (id: string) => bamboohrApiRequest(`employees/${id}/photo/small`);
-
 async function getEmployees(req: Request, res: Response) {
   try {
-    const response = await getEmployeeDirectory();
+    // get the employee directory
+    const response = await bamboohrApiRequest('employees/directory');
     if (!response.data) {
       res.status(204).send('No Content');
     }
@@ -40,15 +38,23 @@ async function getEmployees(req: Request, res: Response) {
 
 async function getEmployee(req: Request, res: Response) {
   try {
-    const response = await getEmployee();
-    if (!response.data) {
-      res.status(204).send('No Content');
-    }
+    if (!req.params.id) throw new Error('No employee id');
+    const { id } = req.params;
+    // get the employee data by id
+    const bambooEmployeeData = await bamboohrApiRequest(
+      `employees/${id}?fields=displayName,firstName,lastName,preferredName,jobTitle,workPhone,mobilePhone,workEmail,department,location,division,linkedIn,instagram,pronouns,workPhoneExtension,supervisor,photoUploaded,photoUrl,canUploadPhoto,employmentHistoryStatus`
+    );
+    // TODO: improve this error handling
+    if (!bambooEmployeeData.data) throw new Error('No employee data');
 
-    const data = response?.data as EmployeeDirectory;
-    console.log(data);
-    // we only want to send the employees data
-    res.send(data.employees);
+    const bambooEmployee = bambooEmployeeData.data;
+    const bambooEmploymentHistory = await bamboohrApiRequest(`employees/${bambooEmployee.id}/tables/employmentStatus/`);
+
+    const history = convertToStackOneEmployments(bambooEmploymentHistory?.data ?? []);
+    const employee = convertToStackOneEmployee(bambooEmployee, history);
+
+    console.log(employee);
+    res.send(employee);
   } catch (error: AxiosError | any) {
     console.error(error);
     if (error.response) {
@@ -61,4 +67,4 @@ async function getEmployee(req: Request, res: Response) {
   }
 }
 
-export { getEmployees, paramsSchema };
+export { getEmployees, getEmployee, paramsSchema };
