@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const bambooEmployeeSchema = z.object({
-  id: z.number(),
+  id: z.coerce.number(),
   displayName: z.string(),
   firstName: z.string(),
   lastName: z.string(),
@@ -13,12 +13,13 @@ export const bambooEmployeeSchema = z.object({
   location: z.string(),
   division: z.string(),
   linkedIn: z.string(),
-  instagram: z.string(),
+  instagram: z.string() || z.null(),
   pronouns: z.null(),
   supervisor: z.string(),
-  photoUploaded: z.boolean(),
+  photoUploaded: z.boolean() || z.null(),
   photoUrl: z.string(),
-  canUploadPhoto: z.number()
+  //or null
+  canUploadPhoto: z.boolean() || z.null() || z.number()
 });
 
 export const bambooEmployeeDirectorySchema = z.object({
@@ -32,16 +33,18 @@ export const bambooEmployeeDirectorySchema = z.object({
   employees: z.array(bambooEmployeeSchema)
 });
 
-export const bambooEmployeeEmploymentSchema = z.object({
-  id: z.string(),
-  employeeId: z.string(),
-  date: z.date(),
-  employmentStatus: z.string(),
-  comment: z.string(),
-  terminationReasonId: z.string(),
-  terminationTypeId: z.string(),
-  terminationRehireId: z.string(),
-  terminationRegrettableId: z.string(),
-  benetracStatus: z.null(),
-  gusto: z.null()
-});
+export const bambooEmployeeEmploymentSchema = z.array(
+  z.object({
+    id: z.string(),
+    employeeId: z.string(),
+    date: z.string(),
+    employmentStatus: z.string(),
+    comment: z.string(),
+    terminationReasonId: z.string(),
+    terminationTypeId: z.string(),
+    terminationRehireId: z.string(),
+    terminationRegrettableId: z.string(),
+    benetracStatus: z.null(),
+    gusto: z.null()
+  })
+);
