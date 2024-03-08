@@ -21,7 +21,7 @@ export interface BambooEmployee {
   supervisor: string;
   photoUploaded: boolean;
   photoUrl: string;
-  canUploadPhoto: number;
+  canUploadPhoto: boolean;
 }
 
 export interface Field {
