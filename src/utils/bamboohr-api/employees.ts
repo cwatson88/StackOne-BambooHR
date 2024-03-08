@@ -37,7 +37,27 @@ export interface Field {
   name: string;
 }
 
-interface StackOneEmployee {
+export interface BambooEmployeeEmployment {
+  id: string;
+  employeeId: string;
+  date: Date;
+  employmentStatus: string;
+  comment: string;
+  terminationReasonId: string;
+  terminationTypeId: string;
+  terminationRehireId: string;
+  terminationRegrettableId: string;
+  benetracStatus: null;
+  gusto: null;
+}
+
+export type StackOneEmployments = {
+  start_date: Date;
+  title: string;
+  manager_id: string;
+}[];
+
+export interface StackOneEmployee {
   id: string;
   first_name: string;
   last_name: string;
@@ -52,11 +72,7 @@ interface StackOneEmployee {
   hire_date?: Date;
   tenure?: number;
   work_anniversary?: Date;
-  employments: {
-    start_date: number;
-    title: string;
-    manager_id: string;
-  }[];
+  employments: StackOneEmployments;
   manager?: {
     first_name: string;
     last_name: string;
@@ -81,32 +97,31 @@ function bamboohrApiRequest(url: string) {
   return axios.request(options);
 }
 
-const getEmployeeDirectory = () => bamboohrApiRequest('employees/directory');
-const getEmployee = (id: string) =>
-  bamboohrApiRequest(
-    `employees/${id}?fields=displayName,firstName,lastName,preferredName,jobTitle,workPhone,mobilePhone,workEmail,department,location,division,linkedIn,instagram,pronouns,workPhoneExtension,supervisor,photoUploaded,photoUrl,canUploadPhoto,employmentHistoryStatus`
-  );
-const getEmployeePhoto = (id: string) => bamboohrApiRequest(`employees/${id}/photo/small`);
+// convert BambooEmployeeEmployments to StackOneEmployments
+function convertToStackOneEmployments(bambooEmployeeEmployments: BambooEmployeeEmployment[]): StackOneEmployments {
+  return bambooEmployeeEmployments.map((employment) => ({
+    start_date: employment.date,
+    title: employment.employmentStatus,
+    manager_id: employment.terminationTypeId
+  }));
+}
 
 // Convert BambooHR employee to StackOne employee
-function convertToStackOneEmployee(bambooEmployee: BambooEmployee): StackOneEmployee {
+function convertToStackOneEmployee(
+  bambooEmployee: BambooEmployee,
+  bambooEmployeeEmployment: BambooEmployeeEmployment
+): StackOneEmployee {
   return {
     id: bambooEmployee.id.toString(),
     first_name: bambooEmployee.firstName,
     last_name: bambooEmployee.lastName,
-    name: bambooEmployee.displayName,
+    name: bambooEmployee.firstName + ' ' + bambooEmployee.lastName,
     display_name: bambooEmployee.displayName,
-    personal_phone_number: bambooEmployee.workPhone,
+    personal_phone_number: bambooEmployee.mobilePhone,
     work_email: bambooEmployee.workEmail,
     job_title: bambooEmployee.jobTitle,
     department: bambooEmployee.department,
-    employments: [
-      {
-        start_date: Date.now(),
-        title: bambooEmployee.jobTitle,
-        manager_id: bambooEmployee.supervisor
-      }
-    ],
+    employments: [],
     manager: {
       // Split the supervisor name into first and last name string is in the format "Last, First"
       first_name: bambooEmployee.supervisor.split(' ')[1],
@@ -120,4 +135,4 @@ function addEmployeePhoto(employee: StackOneEmployee, photo: string) {
   return employee;
 }
 
-export { getEmployeeDirectory };
+export { bamboohrApiRequest, convertToStackOneEmployments, convertToStackOneEmployee, addEmployeePhoto };
