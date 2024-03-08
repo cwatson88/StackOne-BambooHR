@@ -3,12 +3,11 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { rateLimit } from 'express-rate-limit';
 import pino from 'pino-http';
-import usersRoute from './api/employees/employees.router';
+import employeesRoute from './api/employees/employees.router';
 
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
 
 app.use(helmet());
 app.use(
@@ -37,8 +36,6 @@ app.get('/', (req, res) => {
   res.send('Hello, TypeScript Express!');
 });
 
-app.use(usersRoute);
+app.use(employeesRoute);
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+export { app };
